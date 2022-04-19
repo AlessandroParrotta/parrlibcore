@@ -108,7 +108,7 @@ namespace prb {
 			else					return outl::getExeFolder() + str;
 		}
 		
-		std::wstring fallbackPath(std::wstring const& prefix, std::wstring const& path) {
+		std::wstring fallbackPath(std::wstring const& prefix, std::wstring const& alternative, std::wstring const& path) {
 			std::wstring res = L"";
 
 			std::ifstream f(prefix + path);
@@ -121,11 +121,9 @@ namespace prb {
 					std::wstring backStr = L"../";
 					for (int j = 0; j < i; j++) backStr += L"../";
 
-					std::wstring fpath = backStr + L"parrlibassets/" + path;
+					std::wstring fpath = backStr + alternative + L"/" + path;
 					f = std::ifstream(prefix + fpath, std::ios::in);
 					if (f.good()) res = fpath;
-
-					//deb::outStrw(prefix + fpath + L" (" + path + L")" + L"\n");
 				}
 			}
 
@@ -136,9 +134,11 @@ namespace prb {
 
 			return prefix + res;
 		}
+		std::wstring fallbackPath(std::wstring const& prefix, std::wstring const& path) { return fallbackPath(prefix, L"", path); }
 		std::wstring fallbackPath(std::wstring const& path) { return fallbackPath(L"", path); }
 
-		std::string fallbackPath(std::string const& prefix, std::string const& path) { return tostr(fallbackPath(towstr(prefix), towstr(path))); }
+		std::string fallbackPath(std::string const& prefix, std::string const& alternative, std::string const& path) { return tostr(fallbackPath(towstr(prefix), towstr(alternative), towstr(path))); }
+		std::string fallbackPath(std::string const& prefix, std::string const& path) { return fallbackPath("", "", path); }
 		std::string fallbackPath(std::string const& path) { return fallbackPath("", path); }
 
 		std::string cutDecimals(std::string number, int decimals) {

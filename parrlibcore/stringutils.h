@@ -34,9 +34,11 @@ namespace prb {
 		bool isAbsolute(std::string const& str);
 		std::string correctExeLocIfAbsolute(std::string const& str);
 
+		std::wstring fallbackPath(std::wstring const& prefix, std::wstring const& alternative, std::wstring const& path);
 		std::wstring fallbackPath(std::wstring const& prefix, std::wstring const& path);
 		std::wstring fallbackPath(std::wstring const& path);
 
+		std::string fallbackPath(std::string const& prefix, std::string const& alternative, std::string const& path);
 		std::string fallbackPath(std::string const& prefix, std::string const& path);
 		std::string fallbackPath(std::string const& path);
 
@@ -91,9 +93,16 @@ namespace prb {
 
 
         inline std::stringstream& composess() { static std::stringstream composesst; return composesst; };
+        
+        // i had to define some overloads to execute if-statements at compile time
+        inline void composeSingle(std::string str) { composess() << str.c_str(); }
+        inline void composeSingle(std::wstring str) { composess() << tostr(str).c_str(); }
+        inline void composeSingle(const wchar_t* str) { composess() << tostr(str).c_str(); }
+        template<typename T> inline void composeSingle(T el) { composess() << el; }
+
         template<typename... Args> inline std::string compose(Args... args) {
             int unpack[] = { ([](auto& arg) {
-                composess() << arg;
+                composeSingle(arg);
             }(args), 0)..., 0 };
             static_cast<void>(unpack);
 
@@ -105,18 +114,19 @@ namespace prb {
         template<typename... Args> inline std::string fmt(Args... args) { return compose(args...); }
         // alias for fmt(outl::getExeFolder().c_str(), ...)
 		template<typename... Args> std::wstring exeFmt(Args... args) { return compose(outl::getExeFolder().c_str(),  args...); }
+        template<typename... Args> inline void pr(Args... args) { std::cout << compose(args...); }
 
 
         inline std::wstringstream& composeWss() { static std::wstringstream composeWsst; return composeWsst; };
         
         // i had to define some overloads to execute if-statements at compile time
-        inline void composeSingle(std::string str) { composeWss() << str.c_str(); }
-        inline void composeSingle(std::wstring str) { composeWss() << str.c_str(); }
-        template<typename T> inline void composeSingle(T el) { composeWss() << el; }
+        inline void composeSinglew(std::string str) { composeWss() << str.c_str(); }
+        inline void composeSinglew(std::wstring str) { composeWss() << str.c_str(); }
+        template<typename T> inline void composeSinglew(T el) { composeWss() << el; }
 
         template<typename... Args> inline std::wstring composew(Args... args) {
             int unpack[] = { ([](auto& arg) {
-                composeSingle(arg);
+                composeSinglew(arg);
             }(args), 0)..., 0 };
             static_cast<void>(unpack);
 

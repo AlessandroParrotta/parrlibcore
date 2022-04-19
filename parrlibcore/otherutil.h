@@ -169,6 +169,13 @@ namespace prb {
 		std::wstring toWString(std::string str);
 
 
+		// single line for loop, i < start breaks from the loop
+		inline void forLoop(int end, std::function<void(int&)> f) { for (int i = 0; i < end; i++) { f(i); if (i < 0) break; } }
+		inline void forLoop2(int endi, int endj, std::function<void(int&, int&)> f) { for (int i = 0; i < endi; i++) { for (int j = 0; j < endj; j++) { f(i, j); if (j < 0) break; } if (i < 0) break; } }
+
+		template<typename T> T sumLoop(int start, int end, int inc, std::function<T(int& i)> f) { T res; for (int i = start; i < end; i++) { res += f(i); if (i < start) break; } return res; }
+		template<typename T> T sumLoop2(int endi, int endj, std::function<T(int&, int&)> f) { T res; for (int i = 0; i < endi; i++) { for (int j = 0; j < endj; j++) { res += f(i, j); if (j < 0) break; } if (i < 0) break; } return res; }
+
 
 		int wrap(int it, int size);
 		int gowrap(int it, int inc, int size);
