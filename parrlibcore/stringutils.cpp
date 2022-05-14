@@ -6,20 +6,20 @@
 //#include "../debug.h"
 
 
-std::wostream& operator<<(std::wostream& wstr, const char* str) {
-	wstr << prb::stru::towstr(str);
-	return wstr;
-}
-
-std::wostream& operator<<(std::wostream& wstr, std::string const& str) {
-	wstr << str.c_str();
-	return wstr;
-}
-
-std::wostream& operator<<(std::wostream& wstr, std::string& str) {
-	wstr << str.c_str();
-	return wstr;
-}
+//std::wostream& operator<<(std::wostream& wstr, const char* str) {
+//	wstr << prb::stru::towstr(str);
+//	return wstr;
+//}
+//
+//std::wostream& operator<<(std::wostream& wstr, std::string const& str) {
+//	wstr << str.c_str();
+//	return wstr;
+//}
+//
+//std::wostream& operator<<(std::wostream& wstr, std::string& str) {
+//	wstr << str.c_str();
+//	return wstr;
+//}
 
 
 namespace prb {

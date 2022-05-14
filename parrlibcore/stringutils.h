@@ -5,15 +5,17 @@
 #include <codecvt>
 #include <string>
 #include <fstream>
+#include <thread>
+#include <mutex>
 #include <sstream>
 #include <any>
 
 #include "timer.h"
 #include "otherutil.h"
 
-std::wostream& operator<<(std::wostream& wstr, const char* str);
-std::wostream& operator<<(std::wostream& wstr, std::string const& str);
-std::wostream& operator<<(std::wostream& wstr, std::string& str);
+//std::wostream& operator<<(std::wostream& wstr, const char* str);
+//std::wostream& operator<<(std::wostream& wstr, std::string const& str);
+//std::wostream& operator<<(std::wostream& wstr, std::string& str);
 
 namespace prb {
 	namespace stringutils {
@@ -93,12 +95,25 @@ namespace prb {
 
 
         inline std::stringstream& composess() { static std::stringstream composesst; return composesst; };
-        
+
         // i had to define some overloads to execute if-statements at compile time
-        inline void composeSingle(std::string str) { composess() << str.c_str(); }
-        inline void composeSingle(std::wstring str) { composess() << tostr(str).c_str(); }
-        inline void composeSingle(const wchar_t* str) { composess() << tostr(str).c_str(); }
-        template<typename T> inline void composeSingle(T el) { composess() << el; }
+        template<typename T> inline void composeSingle(T const& el) { composess() << el; }
+        inline void composeSingle(std::wstring const& el) { composess() << tostr(el); }
+        template<typename T> inline void composeSingle(std::vector<T> const& el);
+        template<typename T, typename U> inline void composeSingle(std::pair<T, U> const& el);
+        template<typename T, typename U> inline void composeSingle(std::unordered_map<T, U> const& el);
+
+        template<typename T> inline void composeSingleStr(T const& el) { composess() << "'"; composeSingle(el); composess() << "'"; }
+        inline void composeSingleVec(const char* el) { composeSingleStr(el); }
+        inline void composeSingleVec(const wchar_t* el) { composeSingleStr(el); }
+        inline void composeSingleVec(std::string const& el) { composeSingleStr(el); }
+        inline void composeSingleVec(std::wstring const& el) { composeSingleStr(el); }
+        template<typename T> inline void composeSingleVec(T const& el) { composeSingle(el); }
+        template<typename T> inline void composeSingleVec(std::vector<T> const& el) { composeSingle(el); }
+        template<typename T> inline void composeSingle(std::vector<T> const& el) { if (el.size() == 0) { composess() << "[]"; return; }  composess() << "[ "; for (int i = 0; i < el.size(); i++) { composeSingleVec(el[i]); composess() << (i < el.size() - 1 ? ", " : ""); } composess() << " ]"; }
+
+        template<typename T, typename U> inline void composeSingle(std::pair<T, U> const& el) { composess() << "[ "; composeSingleVec(el.first); composess() << ", "; composeSingleVec(el.second); composess() << " ]"; }
+        template<typename T, typename U> inline void composeSingle(std::unordered_map<T, U> const& el) { composess() << "[ "; int size = 0; for (auto& e : el) size++; int i = 0; for (auto& e : el) { composeSingleVec(e.first); composess() << " -> "; composeSingleVec(e.second); composess() << (i < size - 1 ? ", " : ""); i++; } composess() << " ]"; }
 
         template<typename... Args> inline std::string compose(Args... args) {
             int unpack[] = { ([](auto& arg) {
@@ -112,21 +127,34 @@ namespace prb {
             return str;
         }
         template<typename... Args> inline std::string fmt(Args... args) { return compose(args...); }
-        // alias for fmt(outl::getExeFolder().c_str(), ...)
-		template<typename... Args> std::wstring exeFmt(Args... args) { return compose(outl::getExeFolder().c_str(),  args...); }
         template<typename... Args> inline void pr(Args... args) { std::cout << compose(args...); }
 
 
-        inline std::wstringstream& composeWss() { static std::wstringstream composeWsst; return composeWsst; };
-        
+        inline std::mutex& _composewmtx() { static std::mutex res; return res; }
+        inline std::wstringstream& composeWss() { static std::unordered_map<std::thread::id, std::wstringstream> composeWsst; if (composeWsst.find(std::this_thread::get_id()) == composeWsst.end()) { std::lock_guard lck(_composewmtx()); composeWsst[std::this_thread::get_id()] = std::wstringstream(); } std::lock_guard lck(_composewmtx()); return composeWsst[std::this_thread::get_id()]; };
+
         // i had to define some overloads to execute if-statements at compile time
-        inline void composeSinglew(std::string str) { composeWss() << str.c_str(); }
-        inline void composeSinglew(std::wstring str) { composeWss() << str.c_str(); }
-        template<typename T> inline void composeSinglew(T el) { composeWss() << el; }
+        template<typename T> inline void composewSingle(T const& el) { composeWss() << el; }
+        inline void composewSingle(std::string const& el) { composeWss() << towstr(el); }
+        template<typename T> inline void composewSingle(std::vector<T> const& el);
+        template<typename T, typename U> inline void composewSingle(std::pair<T, U> const& el);
+        template<typename T, typename U> inline void composewSingle(std::unordered_map<T, U> const& el);
+
+        template<typename T> inline void composewSingleStr(T const& el) { composeWss() << "'"; composewSingle(el); composeWss() << "'"; }
+        inline void composewSingleVec(const char* el) { composewSingleStr(el); }
+        inline void composewSingleVec(const wchar_t* el) { composewSingleStr(el); }
+        inline void composewSingleVec(std::string const& el) { composewSingleStr(el); }
+        inline void composewSingleVec(std::wstring const& el) { composewSingleStr(el); }
+        template<typename T> inline void composewSingleVec(T const& el) { composewSingle(el); }
+        template<typename T> inline void composewSingleVec(std::vector<T> const& el) { composewSingle(el); }
+        template<typename T> inline void composewSingle(std::vector<T> const& el) { if (el.size() == 0) { composeWss() << "[]"; return; }  composeWss() << "[ "; for (int i = 0; i < el.size(); i++) { composewSingleVec(el[i]); composeWss() << (i < el.size() - 1 ? ", " : ""); } composeWss() << " ]"; }
+
+        template<typename T, typename U> inline void composewSingle(std::pair<T, U> const& el) { composeWss() << "[ "; composewSingleVec(el.first); composeWss() << ", "; composewSingleVec(el.second); composeWss() << " ]"; }
+        template<typename T, typename U> inline void composewSingle(std::unordered_map<T, U> const& el) { composeWss() << "[ "; int size = 0; for (auto& e : el) size++; int i = 0; for (auto& e : el) { composewSingleVec(e.first); composeWss() << " -> "; composewSingleVec(e.second); composeWss() << (i < size - 1 ? ", " : ""); i++; } composeWss() << " ]"; }
 
         template<typename... Args> inline std::wstring composew(Args... args) {
             int unpack[] = { ([](auto& arg) {
-                composeSinglew(arg);
+               composewSingle(arg);
             }(args), 0)..., 0 };
             static_cast<void>(unpack);
 
