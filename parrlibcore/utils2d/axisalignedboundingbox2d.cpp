@@ -31,7 +31,10 @@ namespace prb {
 		if (v.y < vmin.y) vmin.y = v.y;
 		else if (v.y > vmax.y) vmax.y = v.y;
 	}
-	AxisAlignedBoundingBox2D AxisAlignedBoundingBox2D::rescaled(vec2 const& v) const { aabb2 bb = *this; bb.rescale(v); return bb; }
+	AxisAlignedBoundingBox2D AxisAlignedBoundingBox2D::rescaled(vec2 const& v) const { AxisAlignedBoundingBox2D bb = *this; bb.rescale(v); return bb; }
+	
+	void AxisAlignedBoundingBox2D::rescale(AxisAlignedBoundingBox2D const& v) { rescale(v.fmin()); rescale(v.fmax()); }
+	AxisAlignedBoundingBox2D AxisAlignedBoundingBox2D::rescaled(AxisAlignedBoundingBox2D const& v) const { return rescaled(v.fmin()).rescaled(v.fmax()); }
 
 	void AxisAlignedBoundingBox2D::narrow(AxisAlignedBoundingBox2D const& bb) {
 		if (vmin.x < bb.fmin().x) vmin.x = bb.fmin().x;

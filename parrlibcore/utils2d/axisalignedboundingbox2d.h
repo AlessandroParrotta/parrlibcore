@@ -68,6 +68,9 @@ namespace prb {
 		void rescale(vec2 const& v);							//rescales the bounding box to fit v inside of it
 		AxisAlignedBoundingBox2D rescaled(vec2 const& v) const; //rescales the bounding box to fit v inside of it
 
+		void rescale(AxisAlignedBoundingBox2D const& v);							//rescales the bounding box to fit v inside of it
+		AxisAlignedBoundingBox2D rescaled(AxisAlignedBoundingBox2D const& v) const; //rescales the bounding box to fit v inside of it
+
 		void narrow(AxisAlignedBoundingBox2D const& bb);
 		AxisAlignedBoundingBox2D narrowed(AxisAlignedBoundingBox2D const& bb) const;
 
