@@ -3,7 +3,7 @@
 #include <filesystem>
 
 #include "otherutil.h"
-//#include "../debug.h"
+//#include "debug.h"
 
 
 //std::wostream& operator<<(std::wostream& wstr, const char* str) {
@@ -111,10 +111,12 @@ namespace prb {
 		std::wstring fallbackPath(std::wstring const& prefix, std::wstring const& alternative, std::wstring const& path) {
 			std::wstring res = L"";
 
+			//OutputDebugStringW((L"prefix '" + prefix + L"' alternative '" + alternative + L"' path '" + path + L"'\n").c_str());
+
 			std::ifstream f(prefix + path);
 			if (f.good()) { f.close(); return prefix + path; }
 			if (!f.good()) {
-				//deb::outStrw( L"tested: " + prefix + path + L" and couldn't find file\n");
+				//OutputDebugStringW( (L"tested: " + prefix + path + L" and couldn't find file\n").c_str());
 				for (int i = 0; i < 5 && !f.good(); i++) {
 					//std::string fname = stru::getFileName(path);
 
@@ -124,10 +126,12 @@ namespace prb {
 					std::wstring fpath = backStr + alternative + L"/" + path;
 					f = std::ifstream(prefix + fpath, std::ios::in);
 					if (f.good()) res = fpath;
+
+					//OutputDebugStringW((fpath + L"\n").c_str());
 				}
 			}
 
-			//deb::outStrw(L"res: " + prefix + res + L" (" + path + L")" + L"\n");
+			//OutputDebugStringW((L"res: " + prefix + res + L" (" + path + L")" + L"\n").c_str());
 
 			if (f.good()) f.close();
 			else res = path;
